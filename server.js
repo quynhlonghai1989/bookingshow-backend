@@ -1,7 +1,3 @@
-// BookingShow Backend - Render Ready Version
-// ------------------------------------------
-// Hỗ trợ: Express server, test API, MoMo payment mock.
-
 import express from "express";
 import bodyParser from "body-parser";
 import axios from "axios";
@@ -9,53 +5,84 @@ import axios from "axios";
 const app = express();
 app.use(bodyParser.json());
 
-// Đọc PORT từ Render (hoặc mặc định 10000 khi chạy cục bộ)
 const PORT = process.env.PORT || 10000;
 
-// 🧠 Route kiểm tra hoạt động
+// Dữ liệu mẫu trong bộ nhớ (sau này bạn có thể thay bằng database)
+let jobs = [
+  {
+    id: 1,
+    title: "Quay phóng sự cưới Nha Trang",
+    location: "Nha Trang",
+    date: "2025-10-30",
+    budget: "5,000,000 VND",
+    client: "Studio A"
+  },
+  {
+    id: 2,
+    title: "Chụp ảnh fashion lookbook",
+    location: "Đà Lạt",
+    date: "2025-11-05",
+    budget: "3,000,000 VND",
+    client: "Boutique B"
+  }
+];
+
+let users = [
+  {
+    id: 1,
+    name: "Trần Quang",
+    role: "Videographer",
+    rating: 4.8,
+    status: "available"
+  },
+  {
+    id: 2,
+    name: "Nguyễn Linh",
+    role: "Photographer",
+    rating: 4.6,
+    status: "busy"
+  }
+];
+
+// -------------------- ROUTES --------------------
+
+// Kiểm tra hoạt động server
 app.get("/", (req, res) => {
   res.send("✅ BookingShow Backend is running successfully!");
 });
 
-// 🩺 Route health check (dành cho Render)
+// Health check
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "Server is healthy 💪" });
 });
 
-// 💰 Route test thanh toán MoMo (mock)
-app.post("/api/momo/test", async (req, res) => {
-  try {
-    const { amount } = req.body;
-
-    // Nếu chưa có key thực, chỉ trả về dữ liệu giả lập
-    if (!process.env.MOMO_PARTNER_CODE) {
-      return res.json({
-        message: "🧪 Test mode: MoMo keys not configured",
-        amount,
-        status: "success",
-      });
-    }
-
-    // Nếu có thông tin thật từ Render Environment
-    const response = await axios.post(process.env.MOMO_ENDPOINT, {
-      partnerCode: process.env.MOMO_PARTNER_CODE,
-      accessKey: process.env.MOMO_ACCESS_KEY,
-      secretKey: process.env.MOMO_SECRET_KEY,
-      amount,
-      requestType: "captureWallet",
-    });
-
-    res.json({
-      message: "MoMo payment initiated",
-      momoResponse: response.data,
-    });
-  } catch (err) {
-    console.error("MoMo API error:", err.message);
-    res.status(500).json({ error: "MoMo payment failed" });
-  }
+// 📸 Lấy danh sách job
+app.get("/api/jobs", (req, res) => {
+  res.json(jobs);
 });
 
-// ✅ Khởi động server
+// 👤 Lấy danh sách người dùng (thợ quay/chụp)
+app.get("/api/users", (req, res) => {
+  res.json(users);
+});
+
+// ➕ Tạo job mới
+app.post("/api/jobs", (req, res) => {
+  const newJob = { id: jobs.length + 1, ...req.body };
+  jobs.push(newJob);
+  res.status(201).json(newJob);
+});
+
+// ➕ Đăng ký user mới
+app.post("/api/users", (req, res) => {
+  const newUser = { id: users.length + 1, ...req.body };
+  users.push(newUser);
+  res.status(201).json(newUser);
+});
+
+// -----------------------------------------------
+
+// Khởi động server
 app.listen(PORT, () => {
   console.log(`🚀 BookingShow backend is running on port ${PORT}`);
 });
